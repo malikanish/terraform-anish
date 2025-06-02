@@ -78,61 +78,31 @@
 # }
 
 
-variable "vpc_cidr_block" {
-  description = "CIDR block for the VPC"
-  type        = string
-}
 
 
-variable "igw_name" {
-  type = string
-}
+variable "vpc_cidr_block" {}
 
-variable "route_table_name" {
-  type = string
-}
+variable "igw_name"{}
 
-variable "base_cidr" {
-  description = "Base CIDR block for subnetting"
-  type        = string
-  default     = "10.0.0.0/16"
-}
+variable "route_table_name" {}
 
-variable "subnet_count" {
-  type        = number
-  description = "Total number of subnets (public + private)"
-  default     = 20
+variable "base_cidr" {}
 
-  validation {
-    condition     = var.subnet_count == 20
-    error_message = "Exactly 20 subnets required (10 public + 10 private)."
-  }
-}
-
-variable "prefix_name" {
-  type = string
-}
-
-variable "prefix_env" {
-  type = string
-}
+variable "subnet_count" {}
 
 locals {
-  newbits     = 8
-  subnet_list = [for i in range(var.subnet_count) : cidrsubnet(var.base_cidr, local.newbits, i)]
-  public_subnets  = slice(local.subnet_list, 0, 10)
-  private_subnets = slice(local.subnet_list, 10, 20)
-
-  common_tags = {
-    owner = var.prefix_name
-    env   = var.prefix_env
-  }
+  newbits            = 8
+  subnet_list        = [for i in range(var.subnet_count) : cidrsubnet(var.base_cidr, local.newbits, i)]
+  public_count       = var.subnet_count / 2
+  private_count      = var.subnet_count / 2
+  public_subnets     = slice(local.subnet_list, 0, local.public_count)
+  private_subnets    = slice(local.subnet_list, local.public_count, var.subnet_count)
 }
-
-
+variable "prefix_name" {}
+variable "prefix_env" {}
+variable "vpc_name" {}
+variable "public_subnet_name" {}
+variable "private_subnet_name" {}
 data "aws_availability_zones" "available" {
   state = "available"
 }
-
-
-
